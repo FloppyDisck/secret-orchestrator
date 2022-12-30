@@ -8,6 +8,7 @@ use std::borrow::Cow;
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum Template {
+    // TODO: add constant templates; SaveConstant, LoadConstant, where a global state stores a Map<String, NodeId>
     MakeBool,
     MakeNumber,
     MakeString,
@@ -23,6 +24,8 @@ pub enum Template {
     Instantiate,
     ConstructMsg,
     DeconstructMsg,
+    ExecuteContract,
+    QueryContract,
 }
 
 impl Template {
@@ -121,7 +124,7 @@ impl NodeTemplateTrait for Template {
     type ValueType = ValueType;
     type UserState = GraphState;
 
-    fn node_finder_label(&self, user_state: &mut Self::UserState) -> Cow<str> {
+    fn node_finder_label(&self, _user_state: &mut Self::UserState) -> Cow<str> {
         Cow::Borrowed(match self {
             Template::MakeBool => "Boolean",
             Template::MakeNumber => "Number",
@@ -138,6 +141,8 @@ impl NodeTemplateTrait for Template {
             Template::Instantiate => "Instantiate Contract",
             Template::ConstructMsg => "Msg Constructor",
             Template::DeconstructMsg => "Msg Splitter",
+            Template::ExecuteContract => "Execute Contract",
+            Template::QueryContract => "Query Contract",
         })
     }
 
@@ -145,7 +150,7 @@ impl NodeTemplateTrait for Template {
         self.node_finder_label(user_state).into()
     }
 
-    fn user_data(&self, user_state: &mut Self::UserState) -> Self::NodeData {
+    fn user_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
         NodeState { template: *self }
     }
 
@@ -187,22 +192,24 @@ impl NodeTemplateTrait for Template {
 
             Template::Account => {
                 add_param(node_id, DataType::String, "mnemonic", IO::Input, graph);
-                // TODO: might need to create a specific account type
-                add_param(node_id, DataType::String, "account", IO::Output, graph);
+                // TODO: return DataType::Account
+                add_param(node_id, DataType::Json, "account", IO::Output, graph);
             }
             Template::Store => {
                 add_param(node_id, DataType::String, "file", IO::Input, graph);
-                add_param(node_id, DataType::String, "account", IO::Input, graph);
+                // TODO: replace with Account
+                add_param(node_id, DataType::Json, "account", IO::Input, graph);
                 add_param(node_id, DataType::Number, "id", IO::Output, graph);
-                add_param(node_id, DataType::String, "code hash", IO::Output, graph);
             }
             Template::Instantiate => {
                 add_param(node_id, DataType::Number, "id", IO::Input, graph);
                 add_param(node_id, DataType::Json, "msg", IO::Input, graph);
                 add_param(node_id, DataType::String, "label", IO::Input, graph);
-                add_param(node_id, DataType::String, "account", IO::Input, graph);
+                // TODO: replace with account
+                add_param(node_id, DataType::Json, "account", IO::Input, graph);
 
-                add_param(node_id, DataType::String, "address", IO::Output, graph);
+                // TODO: make contract type
+                add_param(node_id, DataType::Json, "contract", IO::Output, graph);
             }
             Template::ConstructMsg => {
                 add_param(node_id, DataType::String, "type", IO::Input, graph);
@@ -214,6 +221,22 @@ impl NodeTemplateTrait for Template {
 
                 add_param(node_id, DataType::String, "type", IO::Output, graph);
                 add_param(node_id, DataType::Json, "json", IO::Output, graph);
+            }
+            Template::ExecuteContract => {
+                // TODO: replace contract and account with their relevant types
+                add_param(node_id, DataType::Json, "contract", IO::Input, graph);
+                add_param(node_id, DataType::Json, "account", IO::Input, graph);
+                add_param(node_id, DataType::Json, "msg", IO::Input, graph);
+
+                add_param(node_id, DataType::Json, "response", IO::Output, graph);
+            }
+            Template::QueryContract => {
+                // TODO: replace contract
+
+                add_param(node_id, DataType::Json, "contract", IO::Input, graph);
+                add_param(node_id, DataType::Json, "msg", IO::Input, graph);
+
+                add_param(node_id, DataType::Json, "response", IO::Output, graph);
             }
         }
     }
@@ -238,6 +261,8 @@ impl NodeTemplateIter for TemplateIterator {
             Template::Instantiate,
             Template::ConstructMsg,
             Template::DeconstructMsg,
+            Template::ExecuteContract,
+            Template::QueryContract,
         ]
     }
 }

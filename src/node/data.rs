@@ -1,4 +1,3 @@
-use crate::node::template::Template;
 use crate::node::{GraphState, NodeState, Response};
 use anyhow::anyhow;
 use eframe::egui;
@@ -35,7 +34,7 @@ impl DataType {
 
 /// Implements the Node intractable points color
 impl DataTypeTrait<GraphState> for DataType {
-    fn data_type_color(&self, user_state: &mut GraphState) -> egui::Color32 {
+    fn data_type_color(&self, _user_state: &mut GraphState) -> egui::Color32 {
         match self {
             DataType::Bool => egui::Color32::from_rgb(255, 51, 255),
             DataType::Number => egui::Color32::from_rgb(51, 51, 255),

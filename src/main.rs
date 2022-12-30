@@ -2,7 +2,7 @@ extern crate core;
 
 mod node;
 
-use crate::node::NodeGraphState;
+use crate::node::OrchestratorNodeGraph;
 use eframe::egui::Context;
 use eframe::{egui, Frame};
 
@@ -24,7 +24,7 @@ fn main() {
 }
 
 struct Orchestrator {
-    graph_state: NodeGraphState,
+    graph_state: OrchestratorNodeGraph,
 }
 
 impl Default for Orchestrator {
